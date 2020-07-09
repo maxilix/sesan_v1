@@ -2,9 +2,12 @@
 
 
 
-import socket
-import geth
-import utils
+import	socket
+
+import	geth
+import	utils
+from	utils		import	console
+
 
 estr = "enode://993d81a284a7579d2716c2efb0dbed1724208fcdd8e854ccfb552eab2f418e4b88a6cd6b658ef7aa6ca4b3db2d48ef395bc66528f2ffcf8c7a0bbef624064f39@132.210.82.28:30303"
 
@@ -18,17 +21,13 @@ def send_text(t=""):
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
 tsap_server = ('localhost',30302)
-
 s.connect(tsap_server)
 print("connected")
 
-#(bEnode, bIp, bPort) = geth.enode_to_bytes(estr)
 
+send_byte(0x00)
+send_byte(0x10)
+send_byte(len(estr))
+send_text(estr)
 
-#init
-send_byte(0)
-
-#s.send(bEnode)
-#s.send(bPort)

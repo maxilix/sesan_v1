@@ -1,1 +1,1 @@
-python3 ./python-src/main_client.py
+python3 $1 ./python-src/main_client.py

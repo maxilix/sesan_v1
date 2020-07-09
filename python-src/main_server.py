@@ -2,8 +2,9 @@
 import	os
 import	time
 
-from	settings	import * 
+from	settings	import	*
 import	utils
+from	utils		import	console
 import	geth
 import	server
 
@@ -19,17 +20,16 @@ def main():
 
 
 	print("Welcome to Sesan Blochain Client.\n")
-	nodeName = input("Node name : ") or DEBUG_DEFAULT_NODENAME
+	nodeName = DEBUG_DEFAULT_NODENAME #input("Node name : ") or DEBUG_DEFAULT_NODENAME
 
 	if not os.path.exists("./eth-{0}".format(nodeName)):
-		print("Node not initialized. Please initialize it with main_init.py")
-		utils.secure_exit()
+		console(3, "Node not initialized. Please initialize it with main_init.py")
 
-	utils.gethPid = geth.run_geth_node(nodeName)
+	geth.run_geth_node(nodeName)
 
-	w3 = geth.IPC_geth_connection(nodeName)
+	geth.IPC_geth_connection(nodeName)
 
-	server.start_server(w3)
+	server.start_server()
 
 
 	utils.secure_exit()

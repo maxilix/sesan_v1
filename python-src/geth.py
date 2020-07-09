@@ -7,6 +7,7 @@ from	web3		import	Web3
 
 from	settings	import	* 
 import	utils
+from	utils		import	console
 
 
 def enode_to_bytes(enodeString):
@@ -35,32 +36,31 @@ def run_geth_node(nodeName):
 	#kill sh process
 	subprocess.run("kill {0}".format(proc.pid), shell=True, stdout=subprocess.PIPE)
 
-	# geth pid
+	"""# geth pid
 	proc = subprocess.Popen("ps -ef | grep geth", shell=True, stdout=subprocess.PIPE)
 	pid = proc.communicate()[0].decode('UTF-8').split('\n')[0].split(' ')[1:]
 	if (pid[0] == ""):
 		pid = pid[1:]
 	pid = int(pid[0])
-	print("Geth is running : " + str(pid))
-	return pid
+	console(1, "Geth is running : {0}".format(pid))"""
+
+	console(1, "geth is running")
+	return
 
 
 def IPC_geth_connection(nodeName):
 
-	print("Waiting IPC connection.", end='')
+	console(1, "waiting IPC connection ...")
 	while not os.path.exists("./eth-{0}/geth.ipc".format(nodeName)):
-		print(".",end='')
 		time.sleep(1)
-	print()
 	time.sleep(1)
 
-	w3 = Web3(Web3.IPCProvider("./eth-{0}/geth.ipc".format(nodeName)))
-	if (w3.isConnected()):
-		print("IPC connection successful to {0} geth node.".format(nodeName))
+	utils.w3 = Web3(Web3.IPCProvider("./eth-{0}/geth.ipc".format(nodeName)))
+	if (utils.w3.isConnected()):
+		console(1, "IPC connection successful to {0} geth node".format(nodeName))
 	else:
-		print("IPC connection failed")
-		utils.secure_exit()
-	
-	return w3
+		console(3, "IPC connection failed")
+
+	return
 
 

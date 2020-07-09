@@ -1,7 +1,9 @@
 
-import os
-import signal
+import	os
+import	sys
 import	hashlib
+import	threading
+import	psutil
 
 
 from	settings	import * 
@@ -11,18 +13,32 @@ from	settings	import *
 
 
 def init():
-	#global gethPid
+	
 	global clients
+	global w3
+	global serverSocket
+
 	clients = dict()
-	#log.file = open(LOG_PATHFILE, "w")
 
 
 def secure_exit():
 
-	print("SECURE EXIT")
+	console(0,"secure exit")
 
-	#log.file.close()
-	#os.kill(gethPid, signal.SIGSTOP)
+	for proc in psutil.process_iter(['pid', 'name']):
+		if (proc.info["name"] == "geth"):
+			os.kill(proc.info["pid"],15)
+			break
+	console(0,"secure exit - geth client killed")
+
+
+	for c in clients:
+		clients[c]["socket"].close()
+	console(0,"secure exit - all client connexion closed")
+
+	serverSocket.close()
+	console(0,"secure exit - server stoped")
+
 	exit()
 
 
@@ -35,28 +51,32 @@ def hash(string, methode = "sha256"):
 
 
 
+"""MainThread"""
 
+def console(flags, message, fd = sys.stdout):
 
-def log(flags, client, message):
+	error = False
+
 	# FLAGS
-	if (flags >= LOG_FLAG_ERROR):
-		flags -= LOG_FLAG_ERROR
-		log.file.write("[ERROR] ")
-	if (flags >= LOG_FLAG_WARNING):
-		flags -= LOG_FLAG_WARNING
-		log.file.write("[WARN]  ")
-	if (flags >= LOG_FLAG_INFO):
-		flags -= LOG_FLAG_INFO
-		log.file.write("[INFO]  ")
+	if   (flags == LOG_FLAG_INFO):
+		print(" [INFO] ", file=fd, end = '')
+	elif (flags == LOG_FLAG_WARNING):
+		print(" [WARN] ", file=fd, end = '')
+	elif (flags == LOG_FLAG_ERROR):
+		print("[ERROR] ", file=fd, end = '')
+		error = True
+	else:
+		print("        ", file=fd, end = '')
 
 	# CLIENT or SYSTEM
-	if (client == None):
-		#				(255.255.255.255 , 65536)
-		log.file.write("(        system         )  ")
+	if (threading.currentThread() == threading.main_thread()):
+		print("   SYSTEM   : " , file=fd, end = '')
 	else:
-		log.file.write(str(client[3]+"  "))
-
+		print(threading.currentThread().name[:4] + "..." + threading.currentThread().name[-4:] + " : ", file=fd, end = '')
 	# MESSAGE
-	log.file.write(str(message) + "\n")
+	print(message)
+
+	if error:
+		secure_exit()
 
 
