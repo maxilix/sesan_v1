@@ -27,9 +27,19 @@ GETH_SUBPROCESS_COMMAND		= ""								# TODO
 
 
 #################################   CLIENT_COMMUNICATION   #####
+CC_TIMEOUT 					= 10
 CC_LEN_OF_SIZE 				= 1
 
+
+# 0 system
 CC_BALISE_START				= b'\x00'
 CC_BALISE_STOP				= b'\x00'
-CC_BALISE_ENODE				= b'\x01'
+CC_BALISE_PING				= b'\x01'
+CC_BALISE_PONG				= b'\x02'
+
+# 1 sending
+CC_BALISE_SEND_ENODE		= b'\x10'
+
+# 2 request
+CC_BALISE_REQUEST_ENODE		= b'\x20'
 ################################################################

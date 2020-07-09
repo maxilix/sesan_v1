@@ -1,0 +1,10 @@
+# Ignore files
+log
+
+
+
+
+# Ignore directories
+
+python-src/__pycache__/
+eth-*/

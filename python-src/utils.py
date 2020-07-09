@@ -1,6 +1,8 @@
 
 import os
 import signal
+import	hashlib
+
 
 from	settings	import * 
 
@@ -9,21 +11,27 @@ from	settings	import *
 
 
 def init():
-	global gethPid
+	#global gethPid
 	global clients
 	clients = dict()
-	log.file = open(LOG_PATHFILE, "w")
+	#log.file = open(LOG_PATHFILE, "w")
 
 
 def secure_exit():
 
 	print("SECURE EXIT")
 
-	log.file.close()
+	#log.file.close()
 	#os.kill(gethPid, signal.SIGSTOP)
 	exit()
 
 
+def hash(string, methode = "sha256"):
+	if (methode == "sha256"):
+		return hashlib.sha256(string.encode()).hexdigest()
+	else:
+		raise NameError("Hash methode unknown")
+		return
 
 
 
@@ -50,4 +58,5 @@ def log(flags, client, message):
 
 	# MESSAGE
 	log.file.write(str(message) + "\n")
+
 

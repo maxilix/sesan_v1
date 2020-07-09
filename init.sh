@@ -1,0 +1,1 @@
+python3 ./python-src/main_init.py

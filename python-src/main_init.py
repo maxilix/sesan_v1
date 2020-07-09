@@ -32,5 +32,4 @@ try:
 	outs, errs = proc.communicate(timeout=60)
 except TimeoutExpired:
 	proc.kill()
-	outs, errs = proc.communicate()
 	print("communication error with geth init.")

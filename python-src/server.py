@@ -4,12 +4,21 @@ import	datetime
 #import	queue
 import	socket
 import	threading
-import	hashlib
 
 
 from	settings	import * 
 import	utils
 import	geth
+
+
+def close_client_connexion(connexion, message):
+	print("client " + str(threading.currentThread().name))
+	print("client connexion closed : " + message)
+	utils.clients.pop(threading.currentThread().name)
+	connexion.close()
+	threading.currentThread().stop()
+
+
 
 
 
@@ -26,43 +35,45 @@ def waiting_client(s, w3):
 		print("Not 0x00 to initialized. connexion closed.")
 		return
 	print("0x00 OK : New client")
-	connexion.settimeout(2)
+	connexion.settimeout(CC_TIMEOUT)
 
-	threading.currentThread().name = hashlib.sha256(str(tsap_client).encode()).hexdigest()
+	threading.currentThread().name = utils.hash(str(tsap_client))
 	utils.clients[threading.currentThread().name] = dict()
 	currentClient = utils.clients[threading.currentThread().name]
 	currentClient["timeStamp"] = datetime.datetime.now()
 	#log
 	print(threading.currentThread().name + " initialized")
 
-	while 1:
-		cmd = None
-		try:
+	try :
+		while 1:
 			cmd = connexion.recv(1)
-		except socket.timeout:
-			print("timeout")
-			continue
 
+			print("foret d'iff")
+			if (cmd == CC_BALISE_STOP):
+				close_client_connexion(connexion, "0x00 OK")
+				break
+			if (cmd == CC_BALISE_SEND_ENODE): # CS enodeString
+				print("0x10 send enode")
+				size = int.from_bytes(connexion.recv(CC_LEN_OF_SIZE), byteorder='big')
+				print("size of enode in byte : " + str(size))
+				currentClient["enodeString"] = connexion.recv(size).decode('UTF-8')
+		
 
-		print("foret d'iff")
-		if (cmd == CC_BALISE_STOP):
-			print("0x00 OK : close connexion")
-			utils.clients.pop(threading.currentThread().name)
-			connexion.close()
-			break
-		if (cmd == CC_BALISE_ENODE): # CS enodeString
-			print("0x01 OK : enodeString transfert")
-			size = int.from_bytes(connexion.recv(CC_LEN_OF_SIZE), byteorder='big')
-			print("size of enode in byte : " + str(size))
-			 
+		print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx")
 
-	
+	except socket.timeout:
+		close_client_connexion(connexion, "PING or reply timeout")
+
 	
 	
 
 
 
 def start_server(w3):
+	print("main thread :")
+	print(threading.currentThread())
+	print(threading.currentThread().name())
+
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 	s.bind(('',30302))
