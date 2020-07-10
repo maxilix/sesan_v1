@@ -31,10 +31,7 @@ def main():
 
 	server.start_server()
 
-
 	utils.secure_exit()
-
-
 
 
 

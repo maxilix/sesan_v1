@@ -4,6 +4,8 @@ import	sys
 import	hashlib
 import	threading
 import	psutil
+import	datetime
+
 
 
 from	settings	import * 
@@ -48,6 +50,9 @@ def hash(string, methode = "sha256"):
 	else:
 		raise NameError("Hash methode unknown")
 		return
+
+def now():
+	return datetime.datetime.now()
 
 
 

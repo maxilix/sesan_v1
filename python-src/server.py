@@ -1,6 +1,5 @@
 
 import	time
-import	datetime
 import	socket
 import	threading
 
@@ -23,19 +22,17 @@ def close_client_connexion(message):
 
 
 
-def connexion_lost():
-	close_client_connexion("connexion lost")
-
-
 
 def command_selctor(cmd):
 	switcher = {
 		# 0 system
 		CC__STOP					: lambda:cc_commands.connexion_exit(),
+		CC__PING					: lambda:cc_commands.ping(),
+		CC__PONG					: lambda:console(1,"pong reply"),
 
 		# 1 sending
 		CC__SEND_ENODE				: lambda:cc_commands.send_enode(),
-
+		CC__SEND_ADDRESS			: lambda:cc_commands.send_address(),
 		#
 	}
 	function=switcher.get(cmd,lambda : console(2, "unknowncommand, ignored"))
@@ -58,12 +55,14 @@ def waiting_client():
 	# initialized client database
 	utils.clients[threading.currentThread().name] = dict()
 	currentClient = utils.clients[threading.currentThread().name]
-
-	# set first argurments
 	currentClient["socket"] = connexion
+	currentClient["timestamp"] = utils.now()
 	currentClient["ip"] = [int(tsap_client[0].split('.')[x]) for x in range(4)]
 	currentClient["pyPort"] = tsap_client[1]
-	currentClient["timeStamp"] = datetime.datetime.now()
+	currentClient["gethPort"] = None
+	currentClient["enodeString"] = None
+	currentClient["addressString"] = None
+	currentClient["isValidAddress"] = None
 
 	console(1, "client database initialized")
 
@@ -78,19 +77,27 @@ def waiting_client():
 			cmd = None
 			cmd = connexion.recv(1)
 			if (cmd == None or cmd == b''):
-				connexion_lost()
+				close_client_connexion("connexion lost")
 				return
 
-			console(1, "command received : 0x{:02x}".format(ord(cmd)))
+			#console(1, "command received : 0x{:02x}".format(ord(cmd)))
 			if(command_selctor(cmd)): # if communication error and/or closed connexion
 				return
 
 		raise NameError("Inaccessible code line in waiting_client()")
 
+
+
+
 	except socket.timeout:
 		close_client_connexion("ping or reply timeout")
 		return
-
+	except ConnectionResetError:
+		close_client_connexion("connexion reset failed")
+		return
+	except OSError:
+		close_client_connexion("connexion closed")
+		return
 
 	
 	
@@ -106,14 +113,14 @@ def start_server():
 
 	console(1, "server started, listen on {0}".format(SERVER_LISTEN_PORT))
 
-	interpretorThread = threading.Thread(target=interpretor.start_command_interpretor, name="interpretor", args=( ))
+	interpretorThread = threading.Thread(target=interpretor.command_interpretor, name="interpretor", args=( ))
 	interpretorThread.start()
 
 	nbClient = -1
 
 	while 1:
 
-		newThread = threading.Thread(target=waiting_client , name="newClient" , args=( ))
+		newThread = threading.Thread(target=waiting_client , name="newClient" , args=( ), daemon=True)
 		newThread.start()
 		if (nbClient != len(utils.clients)):
 			nbClient = len(utils.clients)
@@ -121,7 +128,6 @@ def start_server():
 
 		while (newThread.is_alive() and newThread.name == "newClient"):
 			if (not interpretorThread.is_alive()):
-				newThread.join()
 				utils.secure_exit()
 			time.sleep(0.1)
 		

@@ -71,3 +71,14 @@ CC__REQUEST_PROPOSE					= b'\x50'
 CC__REQUEST_DISPOSE					= b'\x51'
 
 ################################################################
+
+
+
+#################################   CMD INTERPRETOR   ##########
+CMD__EXIT							= "exit"
+CMD__CLIENT_LIST					= "clients"
+CMD__CLIENT_I 						= "client"
+CMD__CLOSE_CLIENT_CONNEXION			= "close_client"
+CMD__CLOSE_SERVER_CONNEXION			= "close_server"
+
+################################################################
