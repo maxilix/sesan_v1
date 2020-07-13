@@ -1,1 +1,1 @@
-python3 ./python-src/main_init.py
+python3 ./python-src/main_init_user.py
