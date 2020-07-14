@@ -1,37 +1,52 @@
 
 import	os
 import	time
+import	threading
+import	re
 
-from	settings	import	*
-import	utils
-from	utils		import	console
+
+from	settings		import	*
+
+import	server_tools	as 		tools
+from	server_tools	import	console
+
 import	geth
 import	server
 
 
 
-# relative path ./eth-{0}/ used, not home !!!!!
-# geth pid failed, and so not killed !!!!!!!!!!
+# relative path ./eth_{0}/ used, not home !!!!!
+# dict access via .get(key,defaultIfNotKey)
+
+
+
 
 
 def main():
-
-	utils.init()
-
+	tools.init()
+	tools.verbosity = DEFAULT_VERBOSITY
 
 	print("Welcome to Sesan Blochain Client.\n")
-	nodeName = DEBUG_DEFAULT_NODENAME #input("Node name : ") or DEBUG_DEFAULT_NODENAME
 
-	if not os.path.exists("./eth-{0}".format(nodeName)):
-		console(3, "Node not initialized. Please initialize it with main_init.py")
+	tools.nodeName = "."
+	while (bool(re.compile(r'[^a-z]').search(tools.nodeName))):
+		tools.nodeName = input("Node name (ascii lowercase lettre only)(a-z) : ") or DEFAULT_NODE_NAME
+	#tools.nodeName = DEFAULT_NODE_NAME
+	print("Node name : " + tools.nodeName)
 
-	geth.run_geth_node(nodeName)
+	if not os.path.exists("./eth_{0}".format(tools.nodeName)):
+		console(LOG_FLAG_ERROR, "Node not initialized. Please initialize it with main_init_user.py")
 
-	geth.IPC_geth_connection(nodeName)
+	geth.run_geth_node(tools.nodeName)
 
-	server.start_server()
+	geth.IPC_geth_connection(tools.nodeName)
 
-	utils.secure_exit()
+	geth.check_coinbase()
+
+
+
+	serverThread = threading.Thread(target=server.start_server, name="serverThread", args=( ))
+	serverThread.start()
 
 
 
@@ -39,3 +54,5 @@ def main():
 
 
 main()
+
+from 	server_console 	import *

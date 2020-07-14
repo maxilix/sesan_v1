@@ -2,7 +2,21 @@
 
 
 #################################   DEBUG   ####################
-DEBUG_DEFAULT_NODENAME		= "aspr"
+DEFAULT_NODE_NAME			= "marie"
+################################################################
+
+
+
+#################################   SYSTEM   ###################
+DEFAULT_VERBOSITY			= 5
+#							0 no Log
+#							1 only Error
+# 							2 Warn and Error
+# 							3 Warn, Error and Info
+# 							4 Warn, Error, Info and NoFlag
+# 							5 Warn, Error, Info, NoFlag and CC (without PING/PONG)
+#							6 All
+
 ################################################################
 
 
@@ -10,30 +24,35 @@ DEBUG_DEFAULT_NODENAME		= "aspr"
 #################################   LOG   ######################
 LOG_PATHFILE				= "./log"
 
-LOG_FLAG_NOFLAG				= 0
-LOG_FLAG_INFO				= 1
-LOG_FLAG_WARNING			= 2
-LOG_FLAG_ERROR				= 3
+LOG_FLAG_SECURE_EXIT		= 0
+LOG_FLAG_ERROR				= 1
+LOG_FLAG_WARN				= 2
+LOG_FLAG_INFO				= 3
+LOG_FLAG_NOFLAG				= 4
+LOG_FLAG_CC					= 5
 ################################################################
 
 
 
 #################################   GETH   #####################
-GETH_NETWORKID				= 1789
-GETH_SUBPROCESS_COMMAND		= ""								# TODO
+GETH_NETWORKID						= 1789
+GETH_SUBPROCESS_COMMAND				= ""								# TODO
+
+GETH_MAX_PEER_ENODE_SENT			= 20
+GETH_PERCENT_PEER_ENODE_SENT		= 10
 ################################################################
 
 
 
-#################################   GETH   #####################
-SERVER_LISTEN_PORT			= 30302
+#################################   SERVER   ###################
+SERVER_LISTEN_PORT					= 30302
 ################################################################
 
 
 
 #################################   CLIENT_COMMUNICATION   #####
-CC_TIMEOUT 					= 10
-CC_LEN_OF_SIZE 				= 1
+CC_TIMEOUT 							= 10
+CC_LEN_OF_SIZE 						= 1
 
 
 # 0 system
@@ -43,14 +62,14 @@ CC__PING							= b'\x01'
 CC__PONG							= b'\x02'
 
 # 1 sending
-CC__SEND_ENODE						= b'\x10'
-CC__SEND_ADDRESS					= b'\x11'
+CC__RECIEVE_ENODE					= b'\x10'
+CC__RECIEVE_ADDRESS					= b'\x11'
 
 # 2 user request
-CC__REQUEST_ENODE_SERVER			= b'\x20'
-CC__REQUEST_ENODE_PEERS				= b'\x21'
-CC__REQUEST_ADDRESS_SERVER			= b'\x22'
-CC__REQUEST_ADDRESS_PEERS			= b'\x23'
+CC__REQUEST_SERVER_ENODE			= b'\x20'
+CC__REQUEST_PEERS_ENODE				= b'\x21'
+CC__REQUEST_SERVER_ADDRESS			= b'\x22'
+CC__REQUEST_PEERS_ADDRESS			= b'\x23'
 CC__REQUEST_CONTRACT_GI				= b'\x24'
 CC__REQUEST_CONTRACT_EIGENTRUST		= b'\x25'
 CC__REQUEST_NETWORKID				= b'\x26'
@@ -74,11 +93,19 @@ CC__REQUEST_DISPOSE					= b'\x51'
 
 
 
-#################################   CMD INTERPRETOR   ##########
-CMD__EXIT							= "exit"
-CMD__CLIENT_LIST					= "clients"
-CMD__CLIENT_I 						= "client"
-CMD__CLOSE_CLIENT_CONNEXION			= "close_client"
-CMD__CLOSE_SERVER_CONNEXION			= "close_server"
+#################################   CLIENT UPDATE   ############
+# MS bit : socket usable
+# 2e bit : need update
+# 3e bit : 
+# 4e bit : 
+# 5e bit : 
+# 6e bit : 
+# 7e bit : 
+# LS bit : 
+
+C_NO_UPDATE 						= 0b00000000
+C_UPDATE_ADDRESS					= 0b00000001
+C_UPDATE_PEERABLE					= 0b00000010
+
 
 ################################################################

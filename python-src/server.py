@@ -4,41 +4,13 @@ import	socket
 import	threading
 
 
-from	settings	import	*
-import	utils
-from	utils		import	console
+from	settings		import	*
+
+import	server_tools	as 		tools
+from	server_tools	import	console
+
 import	geth
-import	cc_commands
-import	interpretor
-
-
-def close_client_connexion(message):
-	if (threading.currentThread() == threading.main_thread()):
-		raise NameError("MainThread can't close connexion")
-
-	console(1, "connexion closed : {}".format(message))
-	client = utils.clients.pop(threading.currentThread().name)
-	client["socket"].close()
-
-
-
-
-def command_selctor(cmd):
-	switcher = {
-		# 0 system
-		CC__STOP					: lambda:cc_commands.connexion_exit(),
-		CC__PING					: lambda:cc_commands.ping(),
-		CC__PONG					: lambda:console(1,"pong reply"),
-
-		# 1 sending
-		CC__SEND_ENODE				: lambda:cc_commands.send_enode(),
-		CC__SEND_ADDRESS			: lambda:cc_commands.send_address(),
-		#
-	}
-	function=switcher.get(cmd,lambda : console(2, "unknowncommand, ignored"))
-	return function()
-
-
+import	server_managment
 
 
 
@@ -46,43 +18,32 @@ def command_selctor(cmd):
 def waiting_client():
 	# accept new connexion
 	try:
-		connexion,tsap_client = utils.serverSocket.accept()
+		connexion,tsap_client = tools.serverSocket.accept()
 	except socket.timeout:
 		return
 	# rename the current tread
-	threading.currentThread().name = utils.hash(str(tsap_client))
+	threading.currentThread().name = tools.hash(str(tsap_client))
 
 	# initialized client database
-	utils.clients[threading.currentThread().name] = dict()
-	currentClient = utils.clients[threading.currentThread().name]
-	currentClient["socket"] = connexion
-	currentClient["timestamp"] = utils.now()
-	currentClient["ip"] = [int(tsap_client[0].split('.')[x]) for x in range(4)]
-	currentClient["pyPort"] = tsap_client[1]
-	currentClient["gethPort"] = None
-	currentClient["enodeString"] = None
-	currentClient["addressString"] = None
-	currentClient["isValidAddress"] = None
-
-	console(1, "client database initialized")
+	server_managment.init_new_client_database(connexion,tsap_client)
 
 	connexion.settimeout(CC_TIMEOUT)
 	if (connexion.recv(1) != CC__START):
-		close_client_connexion("no start opCode")
+		server_managment.close_client_connexion("no start opCode") ##################CLOSE
 		return
-	console(1, "start opCode OK : New client")
+	console(LOG_FLAG_INFO, "start opCode OK : New client")
+
 
 	try :
 		while 1:
 			cmd = None
 			cmd = connexion.recv(1)
 			if (cmd == None or cmd == b''):
-				close_client_connexion("connexion lost")
+				server_managment.close_client_connexion("connexion lost")##################CLOSE
 				return
 
-			#console(1, "command received : 0x{:02x}".format(ord(cmd)))
-			if(command_selctor(cmd)): # if communication error and/or closed connexion
-				return
+			server_managment.command_selctor(cmd)
+			server_managment.client_database_update()
 
 		raise NameError("Inaccessible code line in waiting_client()")
 
@@ -90,13 +51,13 @@ def waiting_client():
 
 
 	except socket.timeout:
-		close_client_connexion("ping or reply timeout")
+		server_managment.close_client_connexion("ping or pong reply timeout")##################CLOSE
 		return
 	except ConnectionResetError:
-		close_client_connexion("connexion reset failed")
+		server_managment.close_client_connexion("connexion reset failed")##################CLOSE
 		return
 	except OSError:
-		close_client_connexion("connexion closed")
+		server_managment.close_client_connexion("console command")##################CLOSE
 		return
 
 	
@@ -105,30 +66,25 @@ def waiting_client():
 
 
 def start_server():
-	utils.serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	utils.serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-	utils.serverSocket.bind(('',SERVER_LISTEN_PORT))
-	utils.serverSocket.listen(1)
-	utils.serverSocket.settimeout(1)
+	tools.serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	tools.serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+	tools.serverSocket.bind(('',SERVER_LISTEN_PORT))
+	tools.serverSocket.listen(1)
+	tools.serverSocket.settimeout(1)
 
-	console(1, "server started, listen on {0}".format(SERVER_LISTEN_PORT))
-
-	interpretorThread = threading.Thread(target=interpretor.command_interpretor, name="interpretor", args=( ))
-	interpretorThread.start()
+	console(LOG_FLAG_INFO, "server started, listen on {0}".format(SERVER_LISTEN_PORT))
 
 	nbClient = -1
 
-	while 1:
+	while threading.currentThread().name != "exit":
 
 		newThread = threading.Thread(target=waiting_client , name="newClient" , args=( ), daemon=True)
 		newThread.start()
-		if (nbClient != len(utils.clients)):
-			nbClient = len(utils.clients)
-			console(1, "active client : {}".format(nbClient))
+		if (nbClient != len(tools.clients)):
+			nbClient = len(tools.clients)
+			console(LOG_FLAG_INFO, "active client : {}".format(nbClient))
 
 		while (newThread.is_alive() and newThread.name == "newClient"):
-			if (not interpretorThread.is_alive()):
-				utils.secure_exit()
 			time.sleep(0.1)
-		
-	raise NameError("Inaccessible code line in start_server()")
+
+	tools.serverSocket.close()

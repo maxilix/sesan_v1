@@ -1,1 +1,1 @@
-python3 ./python-src/main_server.py
+python3 -i ./python-src/main_server.py
