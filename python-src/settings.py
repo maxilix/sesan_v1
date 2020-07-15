@@ -8,7 +8,7 @@ DEFAULT_NODE_NAME			= "marie"
 
 
 #################################   SYSTEM   ###################
-DEFAULT_VERBOSITY			= 5
+DEFAULT_VERBOSITY			= 3
 #							0 no Log
 #							1 only Error
 # 							2 Warn and Error
@@ -16,13 +16,15 @@ DEFAULT_VERBOSITY			= 5
 # 							4 Warn, Error, Info and NoFlag
 # 							5 Warn, Error, Info, NoFlag and CC (without PING/PONG)
 #							6 All
+CONFIG_FILENAME				= ".conf"
 
 ################################################################
 
 
 
 #################################   LOG   ######################
-LOG_PATHFILE				= "./log"
+LOG_SERVER_FILENAME			= ".server.log"
+LOG_GETH_FILENAME			= ".geth.log"
 
 LOG_FLAG_SECURE_EXIT		= 0
 LOG_FLAG_ERROR				= 1
@@ -30,13 +32,15 @@ LOG_FLAG_WARN				= 2
 LOG_FLAG_INFO				= 3
 LOG_FLAG_NOFLAG				= 4
 LOG_FLAG_CC					= 5
+
+LOG 						= "log"
+STDOUT 						= "stdout"
+STDERR						= "stderr"
 ################################################################
 
 
 
 #################################   GETH   #####################
-GETH_NETWORKID						= 1789
-GETH_SUBPROCESS_COMMAND				= ""								# TODO
 
 GETH_MAX_PEER_ENODE_SENT			= 20
 GETH_PERCENT_PEER_ENODE_SENT		= 10
@@ -45,14 +49,14 @@ GETH_PERCENT_PEER_ENODE_SENT		= 10
 
 
 #################################   SERVER   ###################
-SERVER_LISTEN_PORT					= 30302
+
 ################################################################
 
 
 
 #################################   CLIENT_COMMUNICATION   #####
 CC_TIMEOUT 							= 10
-CC_LEN_OF_SIZE 						= 1
+CC_LEN_OF_SIZE 						= 2
 
 
 # 0 system

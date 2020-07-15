@@ -7,10 +7,10 @@ import	time
 
 from	settings		import	*
 
-import	client_tools	as 		tools
-from	client_tools	import	console
+#import	client_tools	as 		tools
+#from	client_tools	import	console
 
-import	geth
+#import	geth
 
 
 addressString = "0xea45041a6f49d1b4551861c9379fd7c475d22909"
@@ -21,8 +21,8 @@ enodeString = "enode://993d81a284a7579d2716c2efb0dbed1724208fcdd8e854ccfb552eab2
 def send_byte(b):
 	s.send(b)
 
-def send_int(i):
-	s.send(i.to_bytes(1,byteorder='big'))
+def send_int(i,size):
+	s.send(i.to_bytes(size,byteorder='big'))
 
 def send_text(t):
 	s.send(t.encode('UTF-8'))
@@ -37,7 +37,7 @@ print("connected")
 
 send_byte(CC__START)
 send_byte(CC__RECIEVE_ENODE)
-send_int(len(enodeString))
+send_int(len(enodeString),CC_LEN_OF_SIZE)
 send_text(enodeString)
 
 send_byte(CC__REQUEST_PEERS_ENODE)

@@ -33,13 +33,13 @@ def bytes_to_enode(bEnode, bIp, bPort):
 	
 def run_geth_node(nodeName):
 
-	proc = subprocess.Popen("geth --nousb --datadir ./eth_{0}/ --nodiscover --networkid {1} 2> /dev/null &".format(nodeName,GETH_NETWORKID), shell=True, stdout=subprocess.PIPE)
+	proc = subprocess.Popen("geth --datadir ./eth_{0}/ --networkid {1} --port {2} {3} 2> ./eth_{0}/{4} &".format(nodeName,tools.conf["geth"]["networkid"],tools.conf["geth"]["port"],"".join(["--"+flag+" " for flag in tools.conf["geth"]["flags"]]),LOG_GETH_FILENAME), shell=True, stdout=subprocess.PIPE)
 
 	#kill sh process
 	subprocess.run("kill {0}".format(proc.pid), shell=True, stdout=subprocess.PIPE)
 
 	"""# geth pid
-	proc = subprocess.Popen("ps -ef | grep geth", shell=True, stdout=subprocess.PIPE)
+	proc = subprocess.Popen("ps -ef | grep geth", shell=True, stdout=subprocess.PIPE)            2> /dev/null &
 	pid = proc.communicate()[0].decode('UTF-8').split('\n')[0].split(' ')[1:]
 	if (pid[0] == ""):
 		pid = pid[1:]
@@ -70,15 +70,18 @@ def IPC_geth_connection(nodeName):
 
 
 def check_coinbase():
+	try:
+		print("coinbase : " + tools.w3.eth.coinbase.lower())
+	except ValueError:
+		console(LOG_FLAG_ERROR, "coinbase not initialized.")
+
+	if (tools.w3.eth.coinbase.lower() != tools.conf["geth"]["coinbase"].lower()):
+		console(LOG_FLAG_ERROR, "coinbase doesn't match with conf file")
+	
 	t = 3
 	while t>0:
 		try:
-			print("coinbase : " + tools.w3.eth.coinbase.lower())
 			tools.coinbasePassword = input("password : ")
-		except ValueError:
-			console(LOG_FLAG_ERROR, "coinbase not initialized.")
-
-		try:
 			unlock_coinbase(10)
 		except ValueError:
 			t-=1	

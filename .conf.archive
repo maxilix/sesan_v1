@@ -1,0 +1,20 @@
+{
+  "geth": {
+    "coinbase": "0x5300932b9f4bd40f881c7bdb699f130b39ee915c",
+    "contract": {
+      "eingenTrust": {},
+      "interventionManager": []
+    },
+    "flags": [
+      "nousb",
+      "nodiscover"
+    ],
+    "networkid": 1789,
+    "port": 30303
+  },
+  "server": {
+    "contact": [],
+    "port": 30302
+  },
+  "verbosity": 5
+}

@@ -3,8 +3,6 @@ log
 sesan_clique_genesis.json
 
 
-
-
 # Ignore directories
 
 python-src/__pycache__/

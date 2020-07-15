@@ -3,22 +3,36 @@ import	os
 import	threading
 import	hashlib
 import	datetime
+import	json
 
 
-from	settings	import	* 
+from	settings	import	*
 
 
-def init():
+
+def init(tempNodeName):
 
 	global nodeName
+	nodeName = tempNodeName
+
+	global conf
+	with open("./eth_{0}/{1}".format(nodeName,CONFIG_FILENAME),'r') as fd:
+		conf = json.load(fd)
+
 	global w3
+
 	global logFile
+	logFile = open("./eth_{0}/{1}".format(nodeName,LOG_SERVER_FILENAME),'w')
+
 	global verbosity
+	verbosity = conf.get("verbosity",DEFAULT_VERBOSITY)
+
 	global coinbasePassword
+
 	global clients
-	global serverSocket
 	clients = dict()
-	logFile = open(LOG_PATHFILE,'w')
+
+	global serverSocket
 
 
 
@@ -36,12 +50,19 @@ def now():
 
 
 
-def console(flag, message, fd = LOG_PATHFILE, who = None):
+def console(flag, message, fd = LOG, who = None):
 	error = (flag == LOG_FLAG_ERROR)
 	if (flag<=verbosity):
 
-		if (fd == LOG_PATHFILE):
+		if   (fd == LOG):
 			fd = logFile
+		elif (fd == STDOUT):
+			fd = sys.stdout
+		elif (fd == STDERR):
+			fd = sys.stderr
+		else:
+			raise NameError("file descriptor not supported")
+
 
 		# flag
 		if   (flag == LOG_FLAG_SECURE_EXIT):
@@ -55,7 +76,7 @@ def console(flag, message, fd = LOG_PATHFILE, who = None):
 		elif (flag == LOG_FLAG_NOFLAG):
 			fd.write("        ")
 		elif (flag == LOG_FLAG_CC):
-			fd.write("\033[34m  [CMD] \033[0m")
+			fd.write("\033[34m [CMD]  \033[0m")
 		else:
 			raise NameError("Flag no supported")
 
@@ -92,15 +113,22 @@ def secure_exit():
 
 	if (len(clients)>0):
 		console(LOG_FLAG_SECURE_EXIT,"{0} client{1} connected".format(len(clients),("","s")[len(clients)>=2]))
-		for c in clients:
-			clients[c]["socket"].close()
-		console(LOG_FLAG_SECURE_EXIT,"all client connexion closed")
+		import	server_managment
+		server_managment.close_all_connexion()
+		del server_managment
+	console(LOG_FLAG_SECURE_EXIT,"all client connexion closed")
+
 
 	for t in threading.enumerate():
 		if t.name == "serverThread":
+			console(LOG_FLAG_SECURE_EXIT,"server is stopping")
 			t.name = "exit"
 
-	console(LOG_FLAG_SECURE_EXIT,"server is stopping")
+
+	with open("./eth_{0}/{1}".format(nodeName,CONFIG_FILENAME),'w') as fd:
+		json.dump(conf, fd, sort_keys=True, indent=2)
+	console(LOG_FLAG_SECURE_EXIT,"configuration file saved")
 
 	logFile.close()
 	exit()
+

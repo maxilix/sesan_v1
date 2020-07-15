@@ -11,24 +11,81 @@ from	server_tools	import	console
 
 import	geth
 import	server_commands
+import	server
 
 
 
-def unknown_command():
-	console(LOG_FLAG_WARN, "unknown command, ignored")
 
 
-def close_client_connexion(message = ""):
+
+def close_self_connexion(message = ""):
 	if (threading.currentThread() == threading.main_thread()):
-		raise NameError("MainThread can't close connexion")
+		raise NameError("MainThread can't close self connexion")
 
-	if (message == ""):
-		console(LOG_FLAG_INFO, "connexion closed")
+	if close_connexion(threading.currentThread().name):
+		if (message == ""):
+			console(LOG_FLAG_INFO, "connexion closed")
+		else:
+			console(LOG_FLAG_INFO, "connexion closed : {}".format(message))
+	
+	
+def close_all_connexion():
+	console(LOG_FLAG_INFO, "close all connexion")
+	temp = []
+	for c in tools.clients:
+		temp.append(c)
+	for c in temp:
+		close_connexion(c)
+
+
+
+def close_connexion(h):
+	currentClient = tools.clients.get(h,False)
+	if not currentClient:
+		#console(LOG_FLAG_WARN,"client {}...{} doesn't exist".format(h[:4],h[-4:]))
+		return False
 	else:
-		console(LOG_FLAG_INFO, "connexion closed : {}".format(message))
+		tools.clients.pop(h)
+		currentClient["socket"].close()
+		return True
 
-	currentClient = tools.clients.pop(threading.currentThread().name)
-	currentClient["socket"].close()
+
+
+def client_match(hashOrId):
+	match = []
+	if(type(hashOrId) == str): # by hash
+		for c in tools.clients:
+			if (hashOrId == c[:len(hashOrId)]):
+				match.append(c)
+	elif(type(hashOrId) == int): # by id
+		for c in tools.clients:
+			if hashOrId == tools.clients[c]["id"]:
+				match.append(c)
+	else:
+		print("use hash string or integer identifier in argument")
+		return -1
+	return match
+
+
+
+def enable_server():
+	"""
+	check
+	"""
+	serverThread = threading.Thread(target=server.start_server, name="serverThread", args=( ))
+	serverThread.start()
+
+
+def disable_server():
+	"""
+	check
+	"""
+	for t in threading.enumerate():
+		if t.name == "serverThread":
+			t.name = "exit"
+
+
+
 
 
 def init_new_client_database(connexion,tsap):
@@ -43,13 +100,15 @@ def init_new_client_database(connexion,tsap):
 	currentClient["timestamp"] = tools.now()
 	currentClient["ip"] = [int(tsap[0].split('.')[x]) for x in range(4)]
 	currentClient["pyPort"] = tsap[1]
-	#currentClient["gethPort"] = None
 	currentClient["enodeString"] = None
 	currentClient["addressString"] = None
 	currentClient["isValidAddress"] = False
 	currentClient["peerable"] = False
 
 	console(LOG_FLAG_INFO, "new client : database initialized")
+
+
+
 
 
 
@@ -93,32 +152,6 @@ def client_database_update():
 
 
 
-
-def command_selctor(cmd):
-	switcher = {
-		# 0 system
-		CC__STOP							: lambda:server_commands.connexion_exit(),
-		CC__PING							: lambda:server_commands.ping(),
-		CC__PONG							: lambda:console(LOG_FLAG_CC,"pong reply"),
-
-		# 1 sending
-		CC__RECIEVE_ENODE					: lambda:server_commands.recieve_enode(),
-		CC__RECIEVE_ADDRESS					: lambda:server_commands.recieve_address(),
-
-		# 2 user request
-		CC__REQUEST_SERVER_ENODE			: lambda:server_commands.request_server_enode(),
-		CC__REQUEST_PEERS_ENODE				: lambda:server_commands.request_peers_enode(),
-		CC__REQUEST_SERVER_ADDRESS			: lambda:console(LOG_FLAG_CC,""),
-		CC__REQUEST_PEERS_ADDRESS			: lambda:console(LOG_FLAG_CC,""),
-		CC__REQUEST_CONTRACT_GI				: lambda:console(LOG_FLAG_CC,""),
-		CC__REQUEST_CONTRACT_EIGENTRUST		: lambda:console(LOG_FLAG_CC,""),
-		CC__REQUEST_NETWORKID				: lambda:console(LOG_FLAG_CC,"")
-	}
-	function=switcher.get(cmd,lambda : unknown_command())
-	if ((cmd != CC__PING and cmd != CC__PONG) or tools.verbosity >= 6):
-		console(LOG_FLAG_CC, "opCode received : 0x{:02x}".format(ord(cmd)))
-	tools.clients[threading.currentThread().name]["timestamp"] = tools.now()
-	return function()
 
 
 
