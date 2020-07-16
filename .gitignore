@@ -1,10 +1,8 @@
 # Ignore files
-log
 sesan_clique_genesis.json
 
 
 # Ignore directories
 
-python-src/__pycache__/
-eth-*/
+py_src/__pycache__/
 eth_*/
