@@ -31,7 +31,7 @@ def command_selctor(cmd):
 		CC__REQUEST_CONTRACT_IM				: lambda:request_contract_intervention_manager(),
 		CC__REQUEST_CONTRACT_EIGENTRUST		: lambda:request_contract_eigenTrust(),
 		CC__REQUEST_NETWORKID				: lambda:request_networkid(),
-		CC__REQUEST_ETHER 					: lambda:
+		CC__REQUEST_ETHER 					: lambda:request_ether()
 	}
 	function=switcher.get(cmd,lambda : unknown_command())
 	if ((cmd != CC__PING and cmd != CC__PONG) or tools.verbosity >= 6):

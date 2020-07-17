@@ -137,7 +137,7 @@ def change_verbosity(newVerbosity):
 ################################################################
 
 
-
+print("\n\n\n")
 print("Welcome to the server management console")
 print("- Use help() to see informations")
 print("- Use 'tail -f ./eth_{0}/{1}' in an other terminal to see server log".format(tools.nodeName,LOG_SERVER_FILENAME))

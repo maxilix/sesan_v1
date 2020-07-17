@@ -34,8 +34,8 @@ def init(tempNodeName):
 
 	global serverSocket
 
-	global eingenTrust
-	eingenTrust = None
+	global eigenTrust
+	eigenTrust = {}
 
 	global interventionManager
 	interventionManager = []

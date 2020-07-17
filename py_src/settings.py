@@ -18,7 +18,7 @@ DEFAULT_VERBOSITY			= 3
 # 							4 Warn, Error, Info and NoFlag
 # 							5 Warn, Error, Info, NoFlag and CC (without PING/PONG)
 #							6 All
-CONFIG_FILENAME				= ".conf"
+CONFIG_FILENAME				= ".conf.json"
 
 ################################################################
 
@@ -50,7 +50,7 @@ GETH_PERCENT_PEER_ENODE_SENT		= 10
 
 #################################   CONTRACT   #################
 CONTRACT_SOURCES_FOLDER					= "./sol_src/"
-CONTRACT_EIGENTRUST_SOURCES_FILENAME	= "eigenTrust.sol"
+CONTRACT_EIGENTRUST_SOURCES_FILENAME	= "storage.sol"#"eigenTrust.sol"
 CONTRACT_IM_SOURCES_FILENAME			= "interventionManager.sol"
 ################################################################
 

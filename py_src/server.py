@@ -12,7 +12,7 @@ from	server_tools	import	console
 import	geth
 import	server_managment
 import	server_commands
-#import	server_contract
+import	server_contract
 
 
 

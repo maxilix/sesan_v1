@@ -2,7 +2,8 @@
 import	os
 import	time
 import	subprocess
-from	web3		import	Web3
+from	web3			import	Web3 , IPCProvider
+from	web3.middleware import	geth_poa_middleware
 
 
 from	settings		import	*
@@ -53,6 +54,7 @@ def IPC_geth_connection(nodeName):
 	time.sleep(1)
 
 	tools.w3 = Web3(Web3.IPCProvider("./eth_{0}/geth.ipc".format(nodeName)))
+	tools.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 	if (tools.w3.isConnected()):
 		console(LOG_FLAG_INFO, "IPC connection successful to {0} geth node".format(nodeName))
 	else:
@@ -65,14 +67,14 @@ def IPC_geth_connection(nodeName):
 
 def check_coinbase():
 	try:
-		print("coinbase : " + tools.w3.eth.coinbase.lower())
+		print("coinbase : " + tools.w3.eth.coinbase)
 	except ValueError:
 		console(LOG_FLAG_ERROR, "coinbase not initialized.")
 
-	if (tools.w3.eth.coinbase.lower() != tools.conf["geth"]["coinbase"].lower()):
+	if (tools.w3.eth.coinbase != tools.conf["geth"]["coinbase"]):
 		console(LOG_FLAG_ERROR, "coinbase doesn't match with conf file")
 
-	set_default_account(tools.w3.eth.coinbase.lower())
+	set_default_account(tools.w3.eth.coinbase)
 	
 	t = 3
 	while t>0:

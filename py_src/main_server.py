@@ -9,6 +9,7 @@ from	settings		import	*
 
 import	server_tools	as 		tools
 from	server_tools	import	console
+import	server_contract
 
 import	geth
 import	server
@@ -48,12 +49,13 @@ def main():
 
 
 
-
 	geth.run_geth_node(tools.nodeName)
 
 	geth.IPC_geth_connection(tools.nodeName)
 
 	geth.check_coinbase()
+	
+	server_contract.init_contracts()
 
 
 
