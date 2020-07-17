@@ -1,5 +1,6 @@
 import	subprocess
 import	re
+import	json
 
 
 GENESIS_FILE_NAME			= "sesan_clique_genesis.json"
@@ -49,8 +50,7 @@ def create_genesis_file(founderAddress): # founderAddress on 40 char without "0x
 	genesis["parentHash"]						= "0x0000000000000000000000000000000000000000000000000000000000000000"
 
 	genesisFile = open(GENESIS_FILE_NAME, "w")
-	genesisFile.write(str(genesis).replace("'",'"'))
-	genesisFile.write("\n")
+	json.dump(genesis, genesisFile, sort_keys=True, indent=2)
 	genesisFile.close()
 
 
