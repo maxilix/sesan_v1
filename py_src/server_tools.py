@@ -37,6 +37,9 @@ def init(tempNodeName):
 	global eigenTrust
 	eigenTrust = {}
 
+	global PoRX
+	PoRX = {}
+
 	global interventionManager
 	interventionManager = []
 

@@ -46,12 +46,15 @@ STDERR						= "stderr"
 
 GETH_MAX_PEER_ENODE_SENT			= 20
 GETH_PERCENT_PEER_ENODE_SENT		= 10
+
+GETH_MAX_MINING_THREAD 				= 2
 ################################################################
 
 #################################   CONTRACT   #################
 CONTRACT_SOURCES_FOLDER					= "./sol_src/"
-CONTRACT_EIGENTRUST_SOURCES_FILENAME	= "storage.sol"#"eigenTrust.sol"
+CONTRACT_EIGENTRUST_SOURCES_FILENAME	= "eigenTrust.sol"
 CONTRACT_IM_SOURCES_FILENAME			= "interventionManager.sol"
+CONTRACT_PORX_SOURCES_FILENAME			= "PoRX.sol"
 ################################################################
 
 

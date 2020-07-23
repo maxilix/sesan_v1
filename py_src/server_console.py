@@ -6,10 +6,15 @@ import	threading
 from	settings		import	*
 
 import	server_managment
-#import	server_contract
+import	server_contract
 
 import	server_tools	as 		tools
 from	server_tools	import	console
+
+
+import	debug
+
+
 
 
 #################################   SYSTEM   ###################
@@ -137,6 +142,28 @@ def change_verbosity(newVerbosity):
 ################################################################
 
 
+
+#################################   GETH   #####################
+
+def mine(status):
+	if (status == True):
+		th = 1
+	elif (type(status) == int and status >= 0):
+		th = status
+	elif (status == False):
+		th = 0
+	else:
+		console(LOG_FLAG_WARN, "wrong argument for mine(status), bool or positive integer")
+		return
+
+	if (th > 0):
+		tools.w3.geth.miner.start(min(th,GETH_MAX_MINING_THREAD))
+	else:
+		tools.w3.geth.miner.stop()
+
+
+
+################################################################
 print("\n\n\n")
 print("Welcome to the server management console")
 print("- Use help() to see informations")

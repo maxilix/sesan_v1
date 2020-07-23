@@ -50,6 +50,15 @@ def init_contracts():
 		abi = tools.conf["geth"]["contract"]["eigenTrust"]["abi"]
 		tools.eigenTrust = tools.w3.eth.contract(address=address,abi=abi)
 
+
+	if (tools.conf["geth"]["contract"]["PoRX"] == {}):
+		tools.PoRX = {}
+	else:
+		address = tools.conf["geth"]["contract"]["PoRX"]["address"]
+		abi = tools.conf["geth"]["contract"]["PoRX"]["abi"]
+		tools.PoRX = tools.w3.eth.contract(address=address,abi=abi)
+
+
 	tools.interventionManager = []
 	for im in tools.conf["geth"]["contract"]["interventionManager"]:
 		tools.interventionManager.append(tools.w3.eth.contract(address=im["address"],abi=im["abi"]))
@@ -72,7 +81,7 @@ def deploy_intervention_manager():
 
 def deploy_eigenTrust():
 	if (tools.eigenTrust != {}):
-		console(LOG_FLAG_WARN, "eigenTrust contract already deployed at {}".format(tools.eigenTrust["address"]))
+		console(LOG_FLAG_WARN, "eigenTrust contract already deployed at {}".format(tools.eigenTrust.address))
 		return False
 
 	compiledEigenTrust = solcx.compile_files([CONTRACT_SOURCES_FOLDER + CONTRACT_EIGENTRUST_SOURCES_FILENAME])
@@ -84,6 +93,21 @@ def deploy_eigenTrust():
 	eigenTrustDeployWaitingThread = threading.Thread(target=deploy_waiting , name="eigenTrust" , args=(deployTransactionHash, eigenTrustInterface['abi'], ), daemon=True)
 	eigenTrustDeployWaitingThread.start()
 
+
+
+def deploy_PoRX():
+	if (tools.PoRX != {}):
+		console(LOG_FLAG_WARN, "PoRX contract already deployed at {}".format(tools.PoRX.address))
+		return False
+
+	compiledPoRX = solcx.compile_files([CONTRACT_SOURCES_FOLDER + CONTRACT_PORX_SOURCES_FILENAME])
+	PoRXId, PoRXInterface = compiledPoRX.popitem()
+	deployTransactionHash = tools.w3.eth.contract(abi=PoRXInterface['abi'],bytecode=PoRXInterface['bin']).constructor().transact()
+
+	console(LOG_FLAG_INFO, "PoRX contract transaction sent, waiting validation")
+
+	PoRXDeployWaitingThread = threading.Thread(target=deploy_waiting , name="PoRX" , args=(deployTransactionHash, PoRXInterface['abi'], ), daemon=True)
+	PoRXDeployWaitingThread.start()
 
 
 
@@ -100,6 +124,13 @@ def deploy_waiting(deployTransactionHash,abi):
 		tools.conf["geth"]["contract"]["eigenTrust"]["abi"] = abi
 		init_contracts()
 		console(LOG_FLAG_INFO, "eigenTrust fully deployed at {}".format(address), who="EigenTrust")
+
+	elif (threading.currentThread().name == "PoRX"):
+		console(LOG_FLAG_INFO, "PoRX transaction validated", who="PoRX")
+		tools.conf["geth"]["contract"]["PoRX"]["address"] = address
+		tools.conf["geth"]["contract"]["PoRX"]["abi"] = abi
+		init_contracts()
+		console(LOG_FLAG_INFO, "PoRX fully deployed at {}".format(address), who="PoRX")
 
 	elif (threading.currentThread().name == "interventionManager"):
 		console(LOG_FLAG_INFO, "interventionManager transaction validated", who="IM contract")

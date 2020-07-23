@@ -47,13 +47,15 @@ def run_geth_node(nodeName):
 
 
 def IPC_geth_connection(nodeName):
+	global provider
 
 	console(LOG_FLAG_INFO, "waiting IPC connection ...")
 	while not os.path.exists("./eth_{0}/geth.ipc".format(nodeName)):
 		time.sleep(1)
 	time.sleep(1)
 
-	tools.w3 = Web3(Web3.IPCProvider("./eth_{0}/geth.ipc".format(nodeName)))
+	provider = Web3.IPCProvider("./eth_{0}/geth.ipc".format(nodeName))
+	tools.w3 = Web3(provider)
 	tools.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 	if (tools.w3.isConnected()):
 		console(LOG_FLAG_INFO, "IPC connection successful to {0} geth node".format(nodeName))
@@ -120,4 +122,51 @@ def unlock_coinbase(secondes):
 def lock_coinbase():
 	tools.w3.geth.personal.lock_account(tools.w3.eth.coinbase)
 	console(LOG_FLAG_INFO, "coinbase account lock")
+##################################################################################################
+
+
+##################################################################################################
+# clique engine methodes
+# by JSON-RPC call
+#
+
+def clique_get_signers():
+	response = provider.make_request(method = "clique_getSigners", params = [])
+	if ("error" in response.keys()):
+		print(response)
+		raise NameError("Bad RPC request")
+	return response["result"]
+
+def clique_get_proposals():
+	response = provider.make_request(method = "clique_proposals", params = [])
+	if ("error" in response.keys()):
+		print(response)
+		raise NameError("Bad RPC request")
+	return response["result"]
+
+def clique_propose(address,vote):
+	if (address[:2] != "0x" or not tools.w3.isAddress(address)):
+		console(LOG_FLAG_WARN, "clique engine need valid address, propose not set")
+		return False
+	if (type(vote)!=bool):
+		console(LOG_FLAG_WARN, "clique engine need boolean vote, propose not set")
+		return False
+
+	response = provider.make_request(method = "clique_propose", params = [address,vote])
+	if ("error" in response.keys()):
+		print(response)
+		raise NameError("Bad RPC request")
+	return (response["result"] == None and clique_get_proposals()[address] == vote)
+
+def clique_discard(address):
+	if (address[:2] != "0x" or not tools.w3.isAddress(address)):
+		console(LOG_FLAG_WARN, "clique engine need valid address, discard not set")
+		return False
+
+	response = provider.make_request(method = "clique_discard", params = [address])
+	if ("error" in response.keys()):
+		print(response)
+		raise NameError("Bad RPC request")
+	return (response["result"] == None and address not in clique_get_proposals())
+
 ##################################################################################################
