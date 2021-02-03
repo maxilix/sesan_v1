@@ -1,23 +1,29 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.4.22 <0.7.0;
+pragma solidity ^0.6.0;
 
 contract adder
 {
     
-    int     total;
+    ufixed     total;
     
     constructor() public
     {
-        total =  100;
+        total =  100.0;
     }
     
-    function add_to_total(int a) public returns (int)
+    function add(ufixed a) public returns (ufixed)
     {
         total = total + a;
-        return total;
     }
-    
-    function get_total() public view returns (int)
+
+    function mul(ufixed a) public returns (ufixed)
+    {
+        total = total * a;
+    }
+
+
+
+    function get_total() public view returns (ufixed)
     {
         return total;
     }

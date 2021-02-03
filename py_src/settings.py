@@ -19,6 +19,7 @@ DEFAULT_VERBOSITY			= 3
 # 							5 Warn, Error, Info, NoFlag and CC (without PING/PONG)
 #							6 All
 CONFIG_FILENAME				= ".conf.json"
+GENESIS_FILENAME 			= "sesan_clique_genesis.json"
 
 ################################################################
 

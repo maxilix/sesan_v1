@@ -80,10 +80,7 @@ def disable_server():
 	"""
 	check
 	"""
-	for t in threading.enumerate():
-		if t.name == "serverThread":
-			t.name = "exit"
-
+	tools.exit_thread("serverThread")
 
 
 

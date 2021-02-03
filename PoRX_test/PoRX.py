@@ -2,6 +2,7 @@ import hashlib
 import random
 import threading
 import time
+import datetime
 import sys
 
 
@@ -10,23 +11,26 @@ import sys
 
 GENESIS_HEADER 			= 0
 GENESIS_NONCE 			= 0
-GENESIS_BLOCK 			= { "header" : GENESIS_HEADER,
-                            "nonce"  : GENESIS_NONCE,
-                            "miner"  : "no miner" }
+GENESIS_BLOCK 			= { "header"    : GENESIS_HEADER,
+                            "nonce"     : GENESIS_NONCE,
+                            "timestamp" : datetime.datetime.now(),
+                            "miner"     : "no miner" }
 
-DIFFICULTY_THRESHOLD 	= 0x0080000000000000000000000000000000000000000000000000000000000000
+DIFFICULTY_THRESHOLD 	= 0x0020000000000000000000000000000000000000000000000000000000000000
 
+INTERBLOCK_TIME 		= 0.01
 
 REPUTATION_INIT 		= 1000
 REPUTATION_MIN 			= 0
 REPUTATION_MAX 			= 2000
-REPUTATION_RATIO 		= 1
-EXP_BASE 				= 1.7
+REPUTATION_RATIO 		= 0.7
+
+EXP_BASE 				= 1.4
 
 reputation 				= {}
 
-MINER_NUMBER 			= 3
-BLOCK_NUMBER_TEST		= 5000
+MINER_NUMBER 			= 7
+BLOCK_NUMBER_TEST		= 3000
 
 
 C_DURATION				= MINER_NUMBER * 2 #6
@@ -71,17 +75,38 @@ def print_stats():
 		print("\tminer-{0:02}\t\t{1:5}\t\t{2:2.2f}".format(i+1,count,count/BLOCK_NUMBER_TEST*100))
 
 def write_reputation_file(fd):
-	fd.write("{0:5}".format(len(blocks)))
+	fd.write("{0:5}   {1:8}   ".format(len(blocks),int(2**256/DIFFICULTY_THRESHOLD)))
 	for i in range(MINER_NUMBER):
 		fd.write("   {0:4}".format(reputation["miner-{:02}".format(i)]))
 	fd.write("\n")
 	fd.flush()
 
+def update_difficulty():
+	if (len(blocks) <= C_DURATION):
+		return
+	times = [blocks[-(i+1)]["timestamp"] for i in range(C_DURATION)]
+	seconds = [(times[i]-times[i+1]).total_seconds() for i in range(len(times)-1)]
+	m = 0
+	for s in seconds:
+		m+=s
+	m/=len(seconds)
+	if (m<INTERBLOCK_TIME):
+		difficulty("++")
+	else:
+		difficulty("--")
+
+def difficulty(s):
+	global DIFFICULTY_THRESHOLD
+	if   (s == "++"):
+		DIFFICULTY_THRESHOLD = int(DIFFICULTY_THRESHOLD*0.99)
+	elif (s == "--"):
+		DIFFICULTY_THRESHOLD = int(DIFFICULTY_THRESHOLD*1.01)
 
 
 
 
 
+##### SELF
 
 def count_on(duration):
 	count = 0
@@ -92,8 +117,6 @@ def count_on(duration):
 		if (blocks[tested]["miner"] == threading.currentThread().name):
 			count += 1
 	return count
-
-
 
 def difficulty_threshold():
 	difficulty = int(2**256/DIFFICULTY_THRESHOLD)
@@ -107,8 +130,6 @@ def usable_reputation():
 	count = count_on(C_DURATION)
 	return int(reputation[threading.currentThread().name] / EXP_BASE**count)
 
-
-
 def update_reward_reputation():
 	currentReputation = reputation[threading.currentThread().name]
 	countReward = count_on(C_REWARD)
@@ -121,6 +142,7 @@ def update_decay_reputation():
 	eDecay = min(1, (countDecay*C_DURATION*REPUTATION_MAX)/(C_DECAY * currentReputation * S_DECAY))
 	reputation[threading.currentThread().name] = int(currentReputation - (1-eDecay)*currentReputation/D_DECAY)
 
+
 def run_cpu():
 	while (len(blocks) < BLOCK_NUMBER_TEST):
 		currentBlock = blocks[-1]
@@ -129,9 +151,10 @@ def run_cpu():
 		while (currentBlock == blocks[-1]):
 			h = hash(currentBlock["header"], nonce)
 			if (h <= d):
-				blocks.append({ "header" : h,
-                                "nonce"  : nonce,
-                                "miner"  : threading.currentThread().name })
+				blocks.append({ "header"    : h,
+                                "nonce"     : nonce,
+                                "timestamp" : datetime.datetime.now(),
+                                "miner"     : threading.currentThread().name })
 				update_reward_reputation()
 				break
 			else:
@@ -160,14 +183,10 @@ def start_node(reputationInit,power):
 
 power = [1]*MINER_NUMBER
 power[0] = 3
-power[1] = 1
-power[2] = 1
 
 initialReputation = [REPUTATION_INIT]*MINER_NUMBER
-#r[0] =  500
-#r[1] = 1000
-#r[2] = 1500
-
+initialReputation[5] = 300
+initialReputation[6] = 1700
 
 thread = [None]*MINER_NUMBER
 for i in range(MINER_NUMBER):
@@ -187,25 +206,26 @@ for t in thread:
 
 # join
 while (len(blocks) < BLOCK_NUMBER_TEST):
+	currentBlock = blocks[-1]
 	sys.stdout.write("\r{:2.2f}%".format(len(blocks)/BLOCK_NUMBER_TEST*100))
 	sys.stdout.flush()
 
 	#fr[int(threading.currentThread().name[-2:])].write(str(reputation[threading.currentThread().name])+"\n")
 	#fr[int(threading.currentThread().name[-2:])].flush()
 	write_reputation_file(reputationFile)
-	currentBlock = blocks[-1]
+	update_difficulty()
 	while (currentBlock == blocks[-1] and len(blocks) < BLOCK_NUMBER_TEST):
 		time.sleep(0.1)
 
 
-#for file in fr:
-#	file.close()
 reputationFile.close()
 
 
 print("\n")
 
 print_stats()
+
+#print("{0:064x}".format(DIFFICULTY_THRESHOLD))
 
 
 

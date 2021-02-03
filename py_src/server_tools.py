@@ -116,28 +116,38 @@ def console(flag, message, fd = LOG, who = None):
 
 
 
+def exit_thread(threadName):
+	for t in threading.enumerate():
+		if t.name == threadName:
+			t.name = "exit"
+			t.join()
+
+
+
 def secure_exit():
 
 	console(LOG_FLAG_SECURE_EXIT,"secure exit")
+
+
+	exit_thread("serverThread")
+
+	exit_thread("eigenTrustSpyThread")
+	exit_thread("PoRXSpyThread")
+
 
 	for proc in psutil.process_iter(['pid', 'name']):
 		if (proc.info["name"] == "geth"):
 			os.kill(proc.info["pid"],15)
 			break
 	console(LOG_FLAG_SECURE_EXIT,"geth client killed")
-
+	"""
 	if (len(clients)>0):
 		console(LOG_FLAG_SECURE_EXIT,"{0} client{1} connected".format(len(clients),("","s")[len(clients)>=2]))
 		import	server_managment
 		server_managment.close_all_connexion()
 		del server_managment
 	console(LOG_FLAG_SECURE_EXIT,"all client connexion closed")
-
-
-	for t in threading.enumerate():
-		if t.name == "serverThread":
-			console(LOG_FLAG_SECURE_EXIT,"server is stopping")
-			t.name = "exit"
+	"""
 
 
 	with open("./eth_{0}/{1}".format(nodeName,CONFIG_FILENAME),'w') as fd:

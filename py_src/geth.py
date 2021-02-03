@@ -2,6 +2,7 @@
 import	os
 import	time
 import	subprocess
+import	json
 from	web3			import	Web3 , IPCProvider
 from	web3.middleware import	geth_poa_middleware
 
@@ -127,8 +128,16 @@ def lock_coinbase():
 
 ##################################################################################################
 # clique engine methodes
-# by JSON-RPC call
 #
+def clique_get_period():
+	try:
+		return clique_get_period.period
+	except:
+		genesidFile = open("./" + GENESIS_FILENAME , 'r')
+		genesisDict = json.load(genesidFile)
+		clique_get_period.period = genesisDict["config"]["clique"]["period"]
+		genesidFile.close()
+		return clique_get_period.period
 
 def clique_get_signers():
 	response = provider.make_request(method = "clique_getSigners", params = [])

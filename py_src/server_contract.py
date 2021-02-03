@@ -12,6 +12,8 @@ import	server_tools	as 		tools
 from	server_tools	import	console
 
 import	server_managment
+import 	spy_PoRX
+import 	spy_eigenTrust
 
 
 """
@@ -50,6 +52,9 @@ def init_contracts():
 		abi = tools.conf["geth"]["contract"]["eigenTrust"]["abi"]
 		tools.eigenTrust = tools.w3.eth.contract(address=address,abi=abi)
 
+		# start spy
+		tools.exit_thread("eigenTrustSpyThread")
+		threading.Thread(target=spy_eigenTrust.start_spy , name="eigenTrustSpyThread" , args=( ), daemon=True).start()
 
 	if (tools.conf["geth"]["contract"]["PoRX"] == {}):
 		tools.PoRX = {}
@@ -58,10 +63,16 @@ def init_contracts():
 		abi = tools.conf["geth"]["contract"]["PoRX"]["abi"]
 		tools.PoRX = tools.w3.eth.contract(address=address,abi=abi)
 
+		# start spy
+		tools.exit_thread("PoRXSpyThread")
+		threading.Thread(target=spy_PoRX.start_spy , name="PoRXSpyThread" , args=( ), daemon=True).start()
+
+
 
 	tools.interventionManager = []
 	for im in tools.conf["geth"]["contract"]["interventionManager"]:
 		tools.interventionManager.append(tools.w3.eth.contract(address=im["address"],abi=im["abi"]))
+		# SPY
 
 
 
@@ -84,6 +95,9 @@ def deploy_eigenTrust():
 		console(LOG_FLAG_WARN, "eigenTrust contract already deployed at {}".format(tools.eigenTrust.address))
 		return False
 
+	# kill spy
+	tools.exit_thread("eigenTrustSpyThread")
+
 	compiledEigenTrust = solcx.compile_files([CONTRACT_SOURCES_FOLDER + CONTRACT_EIGENTRUST_SOURCES_FILENAME])
 	eigenTrustId, eigenTrustInterface = compiledEigenTrust.popitem()
 	deployTransactionHash = tools.w3.eth.contract(abi=eigenTrustInterface['abi'],bytecode=eigenTrustInterface['bin']).constructor().transact()
@@ -99,6 +113,9 @@ def deploy_PoRX():
 	if (tools.PoRX != {}):
 		console(LOG_FLAG_WARN, "PoRX contract already deployed at {}".format(tools.PoRX.address))
 		return False
+
+	# kill spy
+	tools.exit_thread("PoRXSpyThread")
 
 	compiledPoRX = solcx.compile_files([CONTRACT_SOURCES_FOLDER + CONTRACT_PORX_SOURCES_FILENAME])
 	PoRXId, PoRXInterface = compiledPoRX.popitem()
